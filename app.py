@@ -22,7 +22,7 @@ CANDIDATES = [
     ROOT / "client_segmentation.csv",
 ]
 
-# Names derived from the cluster profiles in the data (see "Segment Insights" tab).
+# Names derived from the cluster profiles in the data.
 DATA_NAMES = {0: "Value Buyers", 1: "Satisfied Mid-Market", 2: "Bulk Multi-Unit Buyers", 3: "Premium Buyers"}
 DATA_DESC = {
     "Value Buyers": "Lowest spend, price and unit size; lowest satisfaction.",
@@ -30,7 +30,7 @@ DATA_DESC = {
     "Bulk Multi-Unit Buyers": "Small group buying about twice as many units; oldest; mostly website-referred.",
     "Premium Buyers": "Highest average price and largest units; below-average satisfaction.",
 }
-# Names assigned in the notebook (PRD-style). Shown only if selected in the sidebar.
+# Names assigned as in PRD .
 NOTEBOOK_NAMES = {0: "Corporate Buyers", 1: "First-Time Buyers", 2: "Luxury Investors", 3: "Global Investors"}
 
 ISO3 = {"usa": "USA", "uk": "GBR", "canada": "CAN", "germany": "DEU", "france": "FRA",
@@ -52,7 +52,7 @@ def load(source) -> pd.DataFrame:
     df["country_label"] = df["country"].map(nice)
     df["iso"] = df["country"].map(ISO3)
 
-    # Some notebooks/export versions include these fields, others derive them at render time.
+    
     if "country_freq" not in df.columns:
         df["country_freq"] = df["country"].map(df["country"].value_counts())
     if "log_total_spend" not in df.columns:
@@ -77,7 +77,7 @@ if df is None:
     st.stop()
 assert df is not None
 
-# ---------------------------------------------------------------- sidebar
+#  sidebar
 st.sidebar.header("Filters")
 naming = st.sidebar.radio(
     "Segment names",
@@ -113,7 +113,7 @@ for col, sel in [("country", s_country), ("region", s_region), ("acquisition_pur
 st.sidebar.download_button("Download filtered data", f.to_csv(index=False).encode(),
                            "filtered_clients.csv", "text/csv")
 
-# ----------------------------------------------------------------- header
+#  header
 st.title("Buyer Segmentation and Investment Profiling")
 st.caption("K-Means segmentation of 2,000 real estate buyers (K = 4) on behavior, spend and demographics")
 if f.empty:
@@ -131,7 +131,7 @@ t1, t2, t3, t4 = st.tabs(["Segmentation Overview", "Investor Behavior",
                           "Geographic Analysis", "Segment Insights"])
 color_args = dict(category_orders={"Segment": order})
 
-# ------------------------------------------------------------ 1. overview
+# 1. overview : The distribution about the segment,  features like total spend, units_bought, satisfaction_score ....
 with t1:
     cnt = f.Segment.value_counts().reindex(order).dropna().rename_axis("Segment").reset_index(name="Clients")
     a, b = st.columns(2)
@@ -144,7 +144,7 @@ with t1:
                                title="Total spend vs satisfaction (bubble = units bought)",
                                **color_args), width="stretch")
 
-# ------------------------------------------------------ 2. investor behavior
+#  2. investor behavior :- Shows the behaviour of investors into different features based on segmentation.
 with t2:
     a, b = st.columns(2)
     a.plotly_chart(px.histogram(f, x="Segment", color="acquisition_purpose", barmode="group",
@@ -165,7 +165,7 @@ with t2:
     b.plotly_chart(px.histogram(f, x="units_bought", color="Segment", nbins=13,
                                 title="Units bought per client", **color_args), width="stretch")
 
-# --------------------------------------------------------- 3. geographic
+# 3. geographic : Distribution based on Geography
 with t3:
     geo = f.groupby(["country_label", "iso"]).size().reset_index(name="Clients")
     st.plotly_chart(px.choropleth(geo, locations="iso", color="Clients", hover_name="country_label",
@@ -184,7 +184,7 @@ with t3:
                                title="Country and region breakdown"), width="stretch")
     st.caption("Note: about 77% of clients are in the USA, so shares in small countries rest on few clients.")
 
-# ------------------------------------------------------------- 4. insights
+#  4. insights
 with t4:
     prof = f.groupby("Segment").agg(
         Clients=("client_id", "count"), Avg_age=("age", "mean"),
